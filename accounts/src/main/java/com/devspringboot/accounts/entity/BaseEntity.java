@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Getter @Setter @ToString
 public class BaseEntity {
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
     @Column(updatable = false)
