@@ -29,9 +29,9 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public void createAccount(CustomerDto customerDto) {
         Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
-        Optional<Customer> optionalCustomer = customerRepository.findByMobileNumber(customerDto.getMobileNumber());
+        Optional<Customer> optionalCustomer = customerRepository.findByMobileNumberOrEmail(customerDto.getMobileNumber(), customerDto.getEmail());
         if (optionalCustomer.isPresent()){
-            throw new CustomerAlreadyExistsException("Customer already registered with given mobileNumber");
+            throw new CustomerAlreadyExistsException("Customer already registered with given email or mobileNumber");
         }
         customer.setCreatedAt(LocalDateTime.now());
         customer.setCreatedBy("Anonymous");
