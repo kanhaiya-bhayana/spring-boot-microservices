@@ -13,7 +13,7 @@ public class Customer extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
     @GenericGenerator(name = "native", strategy = "native")
     @Column(name = "customer_id")
-    private long customerId;
+    private Long customerId;
     private String name;
     private String email;
     @Column(name = "mobile_number")

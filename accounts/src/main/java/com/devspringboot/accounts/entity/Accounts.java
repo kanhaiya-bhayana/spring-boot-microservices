@@ -9,10 +9,10 @@ import org.hibernate.annotations.GenericGenerator;
 public class Accounts extends BaseEntity {
 
     @Column(name = "customer_id")
-    private long customerId;
+    private Long customerId;
     @Id
     @Column(name = "account_number")
-    private long accountNumber;
+    private Long accountNumber;
     @Column(name = "account_type")
     private String accountType;
     @Column(name = "branch_address")
