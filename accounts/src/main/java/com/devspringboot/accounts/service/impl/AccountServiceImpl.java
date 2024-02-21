@@ -44,8 +44,8 @@ public class AccountServiceImpl implements IAccountService {
 
     /**
      *
-     * @param mobileNumber - String
-     * @return the customerDto
+     * @param mobileNumber - Input Mobile Number
+     * @return Accounts Details based on a given mobileNumber
      */
     @Override
     public CustomerDto fetchAccount(String mobileNumber) {
@@ -59,6 +59,33 @@ public class AccountServiceImpl implements IAccountService {
         customerDto.setAccountsDto(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
 
         return customerDto;
+    }
+
+    /**
+     * @param customerDto - CustomerDto Object
+     * @return boolean indicating if the update of Account details in successful or not
+     */
+    @Override
+    public boolean updateAccount(CustomerDto customerDto) {
+
+        boolean isUpdate = false;
+        AccountsDto accountsDto = customerDto.getAccountsDto();
+        if (accountsDto != null){
+            Accounts accounts = accountsRepository.findById(accountsDto.getAccountNumber()).orElseThrow(
+                    ()-> new ResourceNotFoundException("Account", "AccountNumber", accountsDto.getAccountNumber().toString())
+            );
+            AccountsMapper.mapToAccounts(accountsDto, accounts);
+            accounts = accountsRepository.save(accounts);
+
+            Long customerId = accounts.getCustomerId();
+            Customer customer = customerRepository.findById(customerId).orElseThrow(
+                    ()-> new ResourceNotFoundException("Customer", "CustomerID", customerId.toString())
+            );
+            CustomerMapper.mapToCustomer(customerDto, customer);
+            customerRepository.save(customer);
+            isUpdate = true;
+        }
+        return isUpdate;
     }
 
     /**
