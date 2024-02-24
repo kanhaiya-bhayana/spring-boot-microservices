@@ -17,11 +17,11 @@ import java.awt.*;
 @AllArgsConstructor
 public class AccountsController {
 
-    private IAccountService accountService;
+    private IAccountService _accountService;
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createAccount(@RequestBody CustomerDto customerDto){
-        accountService.createAccount(customerDto);
+        _accountService.createAccount(customerDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new ResponseDto(AccountsConstants.STATUS_201, AccountsConstants.MESSAGE_201));
@@ -29,13 +29,13 @@ public class AccountsController {
 
     @GetMapping("/fetch")
     public ResponseEntity<CustomerDto> fetchAccountDetails(@RequestParam String mobileNumber){
-        CustomerDto response =  accountService.fetchAccount(mobileNumber);
+        CustomerDto response =  _accountService.fetchAccount(mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateAccountDetails(@RequestBody CustomerDto request){
-        boolean isUpdate = accountService.updateAccount(request);
+        boolean isUpdate = _accountService.updateAccount(request);
         if (isUpdate){
             return ResponseEntity
                     .status(HttpStatus.OK)
@@ -45,6 +45,20 @@ public class AccountsController {
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ResponseDto(AccountsConstants.STATUS_500, AccountsConstants.MESSAGE_500));
+        }
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<ResponseDto> deleteAccountDetails(@RequestParam String mobileNumber){
+        boolean response = _accountService.deleteAccount(mobileNumber);
+        if (response){
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(new ResponseDto(AccountsConstants.STATUS_200,AccountsConstants.MESSAGE_200));
+        }else{
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResponseDto(AccountsConstants.STATUS_500,AccountsConstants.MESSAGE_500));
         }
     }
 }
