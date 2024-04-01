@@ -1,6 +1,7 @@
 package com.devspringboot.accounts.controller;
 
 import com.devspringboot.accounts.constants.AccountsConstants;
+import com.devspringboot.accounts.dto.AccountsContactInfoDto;
 import com.devspringboot.accounts.dto.CustomerDto;
 import com.devspringboot.accounts.dto.ErrorResponseDto;
 import com.devspringboot.accounts.dto.ResponseDto;
@@ -45,6 +46,9 @@ public class AccountsController {
 
     @Autowired
     private Environment _environment;
+
+    @Autowired
+    private AccountsContactInfoDto accountsContactInfoDto;
 
     @Operation(
             summary = "Create Account REST API",
@@ -207,5 +211,29 @@ public class AccountsController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(_environment.getProperty("JAVA_HOME"));
+    }
+
+    @Operation(
+            summary = "Get Contact Info",
+            description = "Get Contact info details that can be reached out in case of any issues"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    })
+    @GetMapping("/contact-info")
+    public ResponseEntity<AccountsContactInfoDto> getContactInfo(){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(accountsContactInfoDto);
     }
 }
