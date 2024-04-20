@@ -6,8 +6,8 @@ spring:
 build:
   version: "1.1"
 
-accounts:
-  message: "Welcome to E3azyBank accounts related prod APIs"
+cards:
+  message: "Welcome to E3azyBank cards related prod APIs"
   contactDetails:
     name: "Reine Aishwarya - Product Owner"
     email: "aishwarya@eazybank.com"

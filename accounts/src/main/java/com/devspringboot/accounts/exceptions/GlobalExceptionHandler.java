@@ -64,7 +64,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /**
      *
-     * @param exception - CustomerAlreadyExistsException Object
+     * @param exception - ResourceNotFoundException Object
      * @param webRequest - WebRequest Object
      * @return ResponseEntity
      */
