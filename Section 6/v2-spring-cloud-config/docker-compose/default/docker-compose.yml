@@ -1,0 +1,98 @@
+services:
+  rabbit:
+    image: rabbitmq:3.12-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s # retries in the interval of 10s
+      timeout: 5s # wait 5s to get the response from the URL
+      retries: 10 # at least try 10 times to retry
+      start_period: 5s # start the health check after 10s of the container up
+    networks:
+      - eazybank
+
+  configserver:
+    image: "ayanadev9/configserver:s6"
+    container_name: configserver-ms
+    ports:
+      - "8071:8071"
+    depends_on: # this ms is depending on the rabbitmq-service
+      rabbit:
+        condition: service_completed_successfully # it will only start the ms after the rabbitmq-service is successfully started and ready to listen
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s # retries in the interval of 10s
+      timeout: 5s # wait 5s to get the response from the URL
+      retries: 10 # at least try 10 times to retry
+      start_period: 10s # start the health check after 10s of the container up
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - eazybank
+
+  accounts:
+    image: "ayanadev9/accounts:s6"
+    container_name: accounts-ms
+    ports:
+      - "8080:8080"
+    depends_on: # this ms is depending on the config-server-ms
+      configserver:
+        condition: service_completed_successfully # it will only start the ms after the config-server-ms is successfully started and ready to listen
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - eazybank
+    environment:
+      SPRING_APPLICATION_NAME: accounts
+      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/"
+      SPRING_PROFILES_ACTIVE: default
+
+
+  loans:
+    image: "ayanadev9/loans:s6"
+    container_name: loans-ms
+    ports:
+      - "8090:8090"
+    depends_on: # this ms is depending on the config-server-ms
+      configserver:
+        condition: service_completed_successfully # it will only start the ms after the config-server-ms is successfully started and ready to listen
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - eazybank
+    environment:
+      SPRING_APPLICATION_NAME: loans
+      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/"
+      SPRING_PROFILES_ACTIVE: default
+
+  cards:
+    image: "ayanadev9/cards:s6"
+    container_name: cards-ms
+    ports:
+      - "9000:9000"
+    depends_on: # this ms is depending on the config-server-ms
+      configserver:
+        condition: service_completed_successfully # it will only start the ms after the config-server-ms is successfully started and ready to listen
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    networks:
+      - eazybank
+    environment:
+      SPRING_APPLICATION_NAME: cards
+      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/"
+      SPRING_PROFILES_ACTIVE: default
+
+networks:
+  eazybank:
+    driver: "bridge"
