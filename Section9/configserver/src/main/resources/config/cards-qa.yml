@@ -1,0 +1,11 @@
+build:
+  version: "2.0"
+
+cards:
+  message: "Welcome to E3azyBank cards related QA APIs"
+  contactDetails:
+    name: "Smitha Ray - QA lead"
+    email: "smitha@eazybank.com"
+  onCallSupport:
+    - (666) 555-3765
+    - (666) 734-8371
