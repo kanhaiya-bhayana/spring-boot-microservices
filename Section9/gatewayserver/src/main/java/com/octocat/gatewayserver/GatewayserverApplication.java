@@ -40,5 +40,4 @@ public class GatewayserverApplication {
 						.uri("lb://CARDS")).build();
 
 	}
-
 }

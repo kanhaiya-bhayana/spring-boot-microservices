@@ -1,4 +1,4 @@
-package com.eazybytes.gatewayserver.filters;
+package com.octocat.gatewayserver.filters;
 
 import com.octocat.gatewayserver.filters.FilterUtility;
 import org.slf4j.Logger;
