@@ -9,6 +9,9 @@ spring:
         locator:
           enabled: false
           lowerCaseServiceId: true
+      httpclient:
+        connect-timeout: 1000 # time to get the connection to other microservice
+        response-timeout: 2s # maximum time to receive the response from respective microservice
 
 management:
   endpoints:
