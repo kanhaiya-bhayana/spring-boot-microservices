@@ -6,6 +6,7 @@ import com.devspringboot.accounts.dto.CustomerDto;
 import com.devspringboot.accounts.dto.ErrorResponseDto;
 import com.devspringboot.accounts.dto.ResponseDto;
 import com.devspringboot.accounts.service.IAccountService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,6 +29,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
+import java.util.concurrent.TimeoutException;
 
 @Tag(
         name = "CRUD REST API for Accounts in EazyBank",
@@ -188,9 +190,9 @@ public class AccountsController {
     })
     @Retry(name="getBuildInfo", fallbackMethod = "getBuildInfoFallback")
     @GetMapping("/build-info")
-    public ResponseEntity<String> getBuildInfo(){
+    public ResponseEntity<String> getBuildInfo() throws TimeoutException{
         logger.debug("getBuildInfo() method Invoked");
-        throw new NullPointerException();
+        throw new TimeoutException();
 //        return ResponseEntity
 //                .status(HttpStatus.OK)
 //                .body(buildVersion);
@@ -219,13 +221,20 @@ public class AccountsController {
                     )
             )
     })
+    @RateLimiter(name = "getJavaVersion", fallbackMethod = "getJavaVersionFallback")
     @GetMapping("/java-version")
     public ResponseEntity<String> getJavaVersion(){
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(_environment.getProperty("JAVA_HOME"));
     }
+    public ResponseEntity<String> getJavaVersionFallback(Throwable throwable)
+    {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body("Java 17");
 
+    }
     @Operation(
             summary = "Get Contact Info",
             description = "Get Contact info details that can be reached out in case of any issues"

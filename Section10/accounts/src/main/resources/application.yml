@@ -90,3 +90,16 @@ resilience4j.retry:
       waitDuration: 500
       enableExponentialBackoff: true
       exponentialBackoffMultiplier: 2
+      ignoreExceptions: # it will not attempt the retry on the below exceptions
+        - java.lang.NullPointerException
+      retryExceptions: # here retry exception will happen for the below exception, so we don't need to define ignore exception now because retry will happen only for the below and all the remaining exceptions will be ignored
+        - java.util.concurrent.TimeoutException
+
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        timeoutDuration: 1000 # thread is going to wait for max 1 sec
+        limitRefreshPeriod: 5000 # for every 5 sec, refresh the quota
+        limitForPeriod: 1 #
+

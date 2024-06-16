@@ -61,7 +61,7 @@
 				<version>3.4.1</version>
 				<configuration>
 					<to>
-						<image>ayanadev9/${project.artifactId}:s9</image>
+						<image>ayanadev9/${project.artifactId}:s10</image>
 					</to>
 				</configuration>
 			</plugin>
