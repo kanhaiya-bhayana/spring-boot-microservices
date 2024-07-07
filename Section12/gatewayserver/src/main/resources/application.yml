@@ -12,6 +12,11 @@ spring:
       httpclient:
         connect-timeout: 1000 # time to get the connection to other microservice
         response-timeout: 10s # maximum time to receive the response from respective microservice
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:7080/realms/master/protocol/openid-connect/certs"
 management:
   endpoints:
     web:
