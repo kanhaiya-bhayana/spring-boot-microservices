@@ -1,0 +1,109 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: "accounts"
+  profiles:
+    active: "prod"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+endpoints:
+  shutdown:
+    enabled: true
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+info:
+  app:
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+    version: "1.0.0"
+
+
+
+logging:
+  level:
+    com:
+      devspringboot:
+        accounts: DEBUG
+  pattern:
+    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10 # at least consider 10 request before making any decision or change the state
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000 # 10 sec
+
+
+# retry pattern related configuration
+resilience4j.retry:
+  configs:
+    default:
+      max-attempts: 3
+      waitDuration: 500
+      enableExponentialBackoff: true
+      exponentialBackoffMultiplier: 2
+      ignoreExceptions: # it will not attempt the retry on the below exceptions
+        - java.lang.NullPointerException
+      retryExceptions: # here retry exception will happen for the below exception, so we don't need to define ignore exception now because retry will happen only for the below and all the remaining exceptions will be ignored
+        - java.util.concurrent.TimeoutException
+
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        timeoutDuration: 1000 # thread is going to wait for max 1 sec
+        limitRefreshPeriod: 5000 # for every 5 sec, refresh the quota
+        limitForPeriod: 1 #
+
