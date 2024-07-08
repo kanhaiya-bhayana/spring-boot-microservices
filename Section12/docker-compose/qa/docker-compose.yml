@@ -1,4 +1,16 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak
+    ports:
+      - "7080:8080"
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD:  "admin"
+    command: "start-dev"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
   read:
     image: grafana/loki:3.0.0
@@ -81,6 +93,30 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  tempo:
+    image: grafana/tempo
+    container_name: tempo
+    command: -config.file/etc/tempo-config.yml
+    ports:
+      - "3110:3100"
+      - "4317:4317"
+    volumes:
+      - ../observability/tempo/tempo.yml:/etc/tempo-config.yml
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   grafana:
     image: grafana/grafana:latest
     environment:
@@ -93,22 +129,11 @@ services:
       - sh
       - -euc
       - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-        apiVersion: 1
-        datasources:
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://gateway:3100
-            jsonData:
-              httpHeaderName1: "X-Scope-OrgID"
-            secureJsonData:
-              httpHeaderValue1: "tenant1"
-        EOF
         /run.sh
     ports:
       - "3000:3000"
+    volumes:
+      - ../observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasources.yml
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
       interval: 10s
@@ -204,7 +229,7 @@ services:
       service: network-deploy-service
 
   configserver:
-    image: "ayanadev9/configserver:s11"
+    image: "ayanadev9/configserver:s12"
     container_name: configserver-ms
     ports:
       - "8071:8071"
@@ -217,9 +242,11 @@ services:
     extends:
       file: common-config.yml
       service: microservice-base-config
+    environment:
+      OTEL_SERVICE_NAME: "configserver"
 
   eurekaserver:
-    image: "ayanadev9/eurekaserver:s11"
+    image: "ayanadev9/eurekaserver:s12"
     container_name: eurekaserver-ms
     ports:
       - "8070:8070"
@@ -237,12 +264,11 @@ services:
       service: microservice-configserver-config
     environment:
       SPRING_APPLICATION_NAME: "eurekaserver"
+      OTEL_SERVICE_NAME: "eurekaserver"
 
   accounts:
-    image: "ayanadev9/accounts:s11"
+    image: "ayanadev9/accounts:s12"
     container_name: accounts-ms
-    ports:
-      - "8080:8080"
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
@@ -254,15 +280,14 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "accounts"
+      OTEL_SERVICE_NAME: "accounts"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   loans:
-    image: "ayanadev9/loans:s11"
+    image: "ayanadev9/loans:s12"
     container_name: loans-ms
-    ports:
-      - "8090:8090"
     healthcheck:
       test: "curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
@@ -274,15 +299,14 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "loans"
+      OTEL_SERVICE_NAME: "loans"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   cards:
-    image: "ayanadev9/cards:s11"
+    image: "ayanadev9/cards:s12"
     container_name: cards-ms
-    ports:
-      - "9000:9000"
     healthcheck:
       test: "curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
@@ -294,15 +318,14 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "cards"
+      OTEL_SERVICE_NAME: "cards"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
 
   gatewayserver:
-    image: "ayanadev9/gatewayserver:s11"
+    image: "ayanadev9/gatewayserver:s12"
     container_name: gatewayserver-ms
-    ports:
-      - "8072:8072"
     depends_on:
       accounts:
         condition: service_healthy
@@ -312,6 +335,8 @@ services:
         condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "gatewayserver"
+      OTEL_SERVICE_NAME: "gatewayserver"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
